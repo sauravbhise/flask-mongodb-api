@@ -1,3 +1,4 @@
+from crypt import methods
 import json
 import os
 from dotenv import load_dotenv
@@ -25,6 +26,22 @@ def findBook():
     bookName = req["name"]
     books = list(mongo.db.books.find({"name": {"$regex": f"(?i){bookName}"}}))
     return json.dumps(books, default=str)
+
+
+@app.route("/books/name", methods=["DELETE"])
+def deleteBook():
+    req = request.get_json()
+    bookName = req["name"]
+    book = mongo.db.books.find_one({"name": bookName})
+
+    if book == None:
+        return json.dumps({"error": "Book not found"}, default=str)
+
+    id = book["_id"]
+
+    mongo.db.books.delete_one({"_id": id})
+
+    return json.dumps({"success": "Book deleted succesfully"}, default=str)
 
 
 @app.route("/books/price")
